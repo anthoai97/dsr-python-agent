@@ -2,7 +2,7 @@
 """Client and server classes corresponding to protobuf-defined services."""
 import grpc
 
-import dsr_agent_pb2 as dsr__agent__pb2
+import dsr_agent.dsr_agent_pb2 as dsr__agent__pb2
 
 
 class DsrAgentStub(object):
