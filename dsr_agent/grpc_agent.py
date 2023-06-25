@@ -3,11 +3,11 @@ from multiprocessing.pool import ThreadPool
 import threading
 import time
 import grpc
-from message_package import MessagePackage
-from http_agent import AppType
-from logger import logger
+from dsr_agent import dsr_agent_pb2_grpc
+from dsr_agent.message_package import MessagePackage
+from dsr_agent.http_agent import AppType
+from dsr_agent.logger import logger
 from datetime import datetime, timedelta
-import dsr_agent_pb2_grpc
 
 class GRPCAgent:
 	def __init__(

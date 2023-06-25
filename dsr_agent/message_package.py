@@ -1,6 +1,5 @@
-import time
 from datetime import datetime
-from dsr_agent_pb2 import GRPCMessagePackage
+from dsr_agent.dsr_agent_pb2 import GRPCMessagePackage
 
 class MessagePackage:
 	def __init__(

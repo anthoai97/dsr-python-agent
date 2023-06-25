@@ -2,10 +2,10 @@ from datetime import datetime, timedelta
 import json
 import threading
 from typing import TypeVar
-from logger import logger
+from dsr_agent.logger import logger
 import requests
 
-from message_package import MessagePackage
+from dsr_agent.message_package import MessagePackage
 
 AppType = TypeVar("AppType")
 
