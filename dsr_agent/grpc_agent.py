@@ -1,13 +1,13 @@
-from multiprocessing import Process
-from multiprocessing.pool import ThreadPool
 import threading
 import time
 import grpc
-from dsr_agent import dsr_agent_pb2_grpc
+from datetime import datetime, timedelta
+from google.protobuf.struct_pb2 import Struct
+
+from dsr_agent import agent_service_pb2_grpc
 from dsr_agent.message_package import MessagePackage
 from dsr_agent.http_agent import AppType
 from dsr_agent.logger import logger
-from datetime import datetime, timedelta
 
 class GRPCAgent:
 	def __init__(
@@ -15,6 +15,7 @@ class GRPCAgent:
 		*,
 		agent_id: str = "dataspire-agent",
 		agent_name: str = "DataSpire Agent",
+		agent_type: int = 0, # 0 is string / 1 is json
 		target: str = "localhost:8080",
 		timeout: int = 10, # Secconds
 		interval: int = 0, # Secconds
@@ -24,6 +25,7 @@ class GRPCAgent:
 		self.target = target
 		self.timeout = timeout
 		self.interval = interval
+		self.agent_type = agent_type
 		self.channel = grpc.insecure_channel(self.target)
 		self.msgPack: MessagePackage = self._createMessagePackage()
 
@@ -39,8 +41,19 @@ class GRPCAgent:
 			deadline = now + timedelta(seconds= self.interval),
 		)
 	
-	def send(self, data: any) -> None:
-		self.msgPack.setData(data=data)
+	def sendString(self, data:any, id:str = None) -> None:
+		self.msgPack.setData(data=str(data))
+		self.msgPack.message_id = id
+		self._send()
+	
+	def sendJson(self, data: any, id: str = None) -> None:
+		s = Struct()
+		s.update(data)
+		self.msgPack.setData(data=s)
+		self.msgPack.message_id = id
+		self._send()
+		
+	def _send(self) -> None:
 		if(self.msgPack.isReachDeadline() == False):
 			return;
 		# Async call
@@ -51,28 +64,14 @@ class GRPCAgent:
 	def _executeRemote(self, msgPack: MessagePackage) -> None:
 		try:
 			logger.info("Start execute send message")
-			stub = dsr_agent_pb2_grpc.DsrAgentStub(self.channel)
-			response = stub.SendMessage(msgPack.toGRPCMessagePackage(), timeout= self.timeout)
-			logger.info("Send message success: " + response.message)
+			stub = agent_service_pb2_grpc.AgentServiceStub(self.channel)
+			match self.agent_type:
+				case 0:
+					_ = stub.SendSimpleMsgPack(msgPack.toGRPCSimplePackage(), timeout= self.timeout)
+				case 1:
+					_ = stub.SendJsonMsgPack(msgPack.toGRPCJsonPackage(), timeout= self.timeout)
+					
+			logger.info("Send message successful")
 		except grpc.RpcError as rpc_error:
 			msgPack.setResend()
 			self._handleError(rpc_error=rpc_error)
-
-def run():
-	target = "localhost:50051"
-	agent = GRPCAgent(target=target)
-	data = "Data "
-	# async with asyncio.TaskGroup() as tg:
-	for x in range(20):
-		data = "Data " + str(x)
-		time.sleep(0)
-		# agent.send(data={'request' : data}),
-		agent.send(data={'request' : data},)
-			# logger.info(f"Call failed with code: {x}")
-			# data = "Data " + str(x)
-			# tg.create_task(agent.send(data={'request' : data},))
-
-if __name__ == "__main__":
-	run()
-
-		

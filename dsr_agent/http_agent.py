@@ -3,9 +3,9 @@ import json
 import threading
 from typing import TypeVar
 from dsr_agent.logger import logger
-import requests
-
 from dsr_agent.message_package import MessagePackage
+
+import requests
 
 AppType = TypeVar("AppType")
 

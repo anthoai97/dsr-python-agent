@@ -1,0 +1,50 @@
+syntax = "proto3";
+
+package agent_service;
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/struct.proto";
+
+enum MessageType {
+  LOG = 0;
+  RESULT = 1;
+}
+
+// The service definition.
+service AgentService {
+  rpc SendSimpleMsgPack (SimplePackage) returns (ServerReply) {}
+
+  rpc SendJsonMsgPack (JsonMsgPack) returns (ServerReply) {}
+}
+
+message PackageMetadata {
+	string agent = 1;
+	string agent_id = 2;
+	google.protobuf.Timestamp timestamp = 3;
+	int32 resend = 4;
+	string message_id = 5;
+	MessageType type = 6;
+}
+
+message SimplePackage {
+	PackageMetadata metadata = 1;
+	repeated string data = 2;
+}
+
+message JsonMsgPack {
+	PackageMetadata metadata = 1;
+	repeated google.protobuf.Struct data = 2;
+}
+
+
+message ServerReply {
+	repeated PackageExcuteStatus reply = 1;
+}
+
+message PackageExcuteStatus {
+	bool success = 1;
+	string agent_id = 2;
+	string message_id = 3;
+	string path = 4;
+	string error = 5;
+}
