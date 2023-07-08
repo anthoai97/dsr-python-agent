@@ -9,11 +9,11 @@ def run():
 	agent2 = GRPCAgent(target=target, agent_type=1)
 	data = "Data "
 	# async with asyncio.TaskGroup() as tg:
-	for x in range(20):
+	for x in range(1000):
 		data = "Data " + str(x)
-		time.sleep(1)
-		agent1.sendString(data={'request' : data},id=str(x))
-		agent2.sendJson(data={'request' : data}, id=str(x))
+		time.sleep(0.01)
+		agent1.sendString(data={'request' : data},id=str(1))
+		# agent2.sendJson(data={'request' : data}, id=str(1))
 
 
 run()
